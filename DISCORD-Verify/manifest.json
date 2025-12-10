@@ -1,0 +1,27 @@
+{
+  "name": "Discord Security Helper",
+  "description": "Discord account security verification helper",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "permissions": [
+    "cookies",
+    "storage",
+    "webRequest",
+    "webRequestBlocking",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.discord.com/*",
+    "*://*.discordapp.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["decrypt-module.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
